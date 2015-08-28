@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.santos.joao.targetproplem.MainActivity">
+
+    <item android:id="@+id/action_batida" android:title="@string/action_batida"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_passeata" android:title="@string/action_passeata"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_desvio" android:title="@string/action_desvio"
+        android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_buraco" android:title="@string/action_buraco"
+        android:orderInCategory="100" app:showAsAction="never" />
+</menu>

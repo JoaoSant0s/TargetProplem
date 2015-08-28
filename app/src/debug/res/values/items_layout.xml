@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="arrayOptions">
+        <item> Buraco </item>
+        <item> Desvio </item>
+        <item> Passeata </item>
+        <item> Batida </item>
+    </array>
+</resources>
