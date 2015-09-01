@@ -21,8 +21,11 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.santos.joao.sql.DbSqlAdapter;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -33,18 +36,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private MainActivity mLocationListener;
     private LocationManager mLocationManager;
     private Location currentLocation;
+    public static DbSqlAdapter myDb;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        tupla = new Tuple();
         super.onCreate(savedInstanceState);
+        openDB();
         setContentView(R.layout.activity_main);
-
+        tupla = new Tuple();
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         mLocationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
         mLocationListener = new MainActivity();
+    }
+
+    private void populateMarkers(GoogleMap mMap) throws IOException {
+        ArrayList<String[]> aux =  myDb.getAllRows();
+        for(String[] pontos : aux){
+            tupla.name = pontos[0];
+            double latitude = (new BigDecimal(pontos[1])).doubleValue();
+            double longitude =  (new BigDecimal(pontos[2])).doubleValue();
+            Log.d("Repopulando ",pontos[0] + " " + latitude + " " + longitude);
+            LatLng latLng = new LatLng(latitude, longitude);
+            createMaker(latLng, mMap);
+        }
+        tupla.name = Constants.NONE;
     }
 
     @Override
@@ -55,16 +73,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onMapClick(LatLng latLng) {
                 try {
-                    if (tupla.name != null){
-                        Geocoder gc = new Geocoder(MainActivity.this.getBaseContext(), Locale.getDefault());
-                        List<Address> fromLocation = gc.getFromLocation(latLng.latitude, latLng.longitude, 1);
-                        if (!fromLocation.isEmpty()) {
-                            Address en = fromLocation.get(0);
-                            googleMap.addMarker(new MarkerOptions().position(latLng).title(tupla.name).snippet(en.getAddressLine(0)).icon(BitmapDescriptorFactory.defaultMarker(tupla.getColorAviso())));
-                            tupla.name = Constants.NONE;
-                        } else {
-                            Log.d(MainActivity.class.getSimpleName(), "Sem local");
-                        }
+                    if (tupla.name != Constants.NONE){
+                        createMaker(latLng, googleMap);
+                        saveMaker(latLng);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -76,13 +87,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                // Remove the marker
-                //marker.showInfoWindow();
                 marker.remove();
             }
         });
 
     }
+
+    private void createMaker(LatLng latLng, GoogleMap googleMap) throws IOException {
+        Geocoder gc = new Geocoder(MainActivity.this.getBaseContext(), Locale.getDefault());
+        List<Address> fromLocation = gc.getFromLocation(latLng.latitude, latLng.longitude, 1);
+        if (!fromLocation.isEmpty()) {
+            Address en = fromLocation.get(0);
+            googleMap.addMarker(new MarkerOptions().position(latLng).title(tupla.name).snippet(en.getAddressLine(0)).icon(BitmapDescriptorFactory.defaultMarker(tupla.getColorAviso())));
+        } else {
+            Log.d(MainActivity.class.getSimpleName(), "Sem local");
+        }
+
+    }
+
+    private void saveMaker(LatLng latLng) {
+        Log.d("Save ", tupla.name + " " +  Double.toString(latLng.latitude) + " " + Double.toString(latLng.longitude));
+        myDb.insertRow(tupla.name, Double.toString(latLng.latitude), Double.toString(latLng.longitude));
+        tupla.name = Constants.NONE;
+    }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -118,12 +147,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void setUpMap(GoogleMap mMap) {
         LatLng state = new LatLng(-8.05388889, -34.88111111);
-        //mMap.addMarker(new MarkerOptions().position(state).title("Marker"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(state));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
         mMap.getUiSettings().setZoomControlsEnabled(true);
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.setMyLocationEnabled(true);
+
+        try {
+            populateMarkers(mMap);
+        } catch (IOException e) {
+            Log.d("Error Map: ", e.getMessage());
+        }
     }
 
     public void createItem(View vista) {
@@ -152,5 +186,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
         builder.show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        closeDB();
+    }
+
+    private void openDB() {
+        myDb = new DbSqlAdapter(MainActivity.this.getBaseContext());
+        myDb.open();
+    }
+
+    private void closeDB() {
+        myDb.close();
     }
 }

@@ -10,7 +10,7 @@ public class Constants {
     public static final String PASSEATA = "Passeata";
     public static final String DESVIO = "Desvio";
     public static final String BURACO = "Buraco";
-    public static final String NONE = null;
+    public static final String NONE = "None";
 }
 
 class Tuple{
