@@ -66,28 +66,9 @@ public class DbSqlAdapter {
     }
 
     // Delete a row from the database, by rowId (primary key)
-    public boolean deleteRow(long positionList) {
-        int rowId = getCol_Position(positionList);
-
+    public boolean deleteRow(double rowId) {
         String where = FeedEntry.KEY_ROWID + "=" + rowId;
         return db.delete(FeedEntry.TABLE_NAME, where, null) != 0;
-    }
-
-    private int getCol_Position(long positionList){
-        Cursor c = db.query(true, FeedEntry.TABLE_NAME, ALL_KEYS, null, null, null, null, null, null);
-        int cont = 0;
-        if (c != null) {
-            c.moveToFirst();
-            if (c.moveToFirst()) {
-                do {
-                    if (cont == positionList){
-                        return c.getInt(COL_ROWID);
-                    }
-                    cont++;
-                } while(c.moveToNext());
-            }
-        }
-        return -1;
     }
 
     // Return all data in the database.
@@ -99,7 +80,7 @@ public class DbSqlAdapter {
             c.moveToFirst();
             if (c.moveToFirst()) {
                 do {
-                    aux = new String[]{c.getString(COL_STATES), c.getString(COL_LATITUDE), c.getString(COL_LONGITUDE)};
+                    aux = new String[]{c.getString(COL_ROWID), c.getString(COL_STATES), c.getString(COL_LATITUDE), c.getString(COL_LONGITUDE)};
                     h.add(aux);
                 } while(c.moveToNext());
             }
@@ -120,8 +101,8 @@ public class DbSqlAdapter {
     }
 
     // Change an existing row to be equal to new data.
-    public boolean updateRow(long postion, String name, String latitude, String longitude) {
-        String where = FeedEntry.KEY_ROWID + "=" + getCol_Position(postion);
+    public boolean updateRow(long row_id, String name, String latitude, String longitude) {
+        String where = FeedEntry.KEY_ROWID + "=" + row_id;
 
         ContentValues newValues = new ContentValues();
         newValues.put(FeedEntry.COLUMN_CONSTANTS_STATES, name);

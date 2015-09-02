@@ -55,10 +55,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void populateMarkers(GoogleMap mMap) throws IOException {
         ArrayList<String[]> aux =  myDb.getAllRows();
         for(String[] pontos : aux){
-            tupla.name = pontos[0];
-            double latitude = (new BigDecimal(pontos[1])).doubleValue();
-            double longitude =  (new BigDecimal(pontos[2])).doubleValue();
-            Log.d("Repopulando ",pontos[0] + " " + latitude + " " + longitude);
+            tupla.name = pontos[1];
+            double latitude = (new BigDecimal(pontos[2])).doubleValue();
+            double longitude =  (new BigDecimal(pontos[3])).doubleValue();
             LatLng latLng = new LatLng(latitude, longitude);
             createMaker(latLng, mMap);
         }
@@ -73,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onMapClick(LatLng latLng) {
                 try {
-                    if (tupla.name != Constants.NONE){
+                    if (tupla.name != Constants.NONE) {
                         createMaker(latLng, googleMap);
                         saveMaker(latLng);
                     }
@@ -84,13 +83,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-        googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
-            public void onInfoWindowClick(Marker marker) {
-                marker.remove();
+            public boolean onMarkerClick(final Marker marker) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle(marker.getTitle());
+                builder.setMessage(marker.getSnippet());
+                builder.setPositiveButton(R.string.action_remove, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        removeMarker(marker.getPosition());
+                        marker.remove();
+                    }
+                });
+                builder.setNegativeButton(R.string.action_cancel, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                    }
+                });
+                builder.show();
+                return true;
             }
         });
 
+    }
+
+    private void removeMarker(LatLng position) {
+        for(String[] pontos : myDb.getAllRows()){
+            double latitude = (new BigDecimal(pontos[2])).doubleValue();
+            double longitude =  (new BigDecimal(pontos[3])).doubleValue();
+            if(position.latitude == latitude && position.longitude == longitude ){
+                double id_Row =  (new BigDecimal(pontos[0])).doubleValue();
+                myDb.deleteRow(id_Row);
+            }
+        }
     }
 
     private void createMaker(LatLng latLng, GoogleMap googleMap) throws IOException {
