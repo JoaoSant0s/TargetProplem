@@ -3,7 +3,9 @@
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_main">MainActivity</string>
 
-    <string name="hello_world">Hello world!</string>
+    <string name="action_remove">Remover</string>
+    <string name="action_cancel">Cancelar</string>
+
     <string name="action_batida">Batida</string>
     <string name="action_passeata">Passeata</string>
     <string name="action_buraco">Buraco</string>

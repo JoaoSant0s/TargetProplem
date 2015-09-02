@@ -7,11 +7,13 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -28,7 +30,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -37,6 +40,42 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationManager mLocationManager;
     private Location currentLocation;
     public static DbSqlAdapter myDb;
+    private Timer timer;
+    private TimerTask timerTask;
+    //we are going to use a handler to be able to run in our TimerTask
+    final Handler handler = new Handler();
+
+
+    @Override
+    
+    protected void onResume() {
+        super.onResume();
+        startTimer();
+    }
+
+    private void startTimer() {
+        //set a new Timer
+        timer = new Timer();
+        //initialize the TimerTask's job
+        initializeTimerTask();
+        //schedule the timer, after the first 1000ms the TimerTask will run every 10000ms
+        timer.schedule(timerTask, 1000, 20000); //
+    }
+
+    public void initializeTimerTask() {
+        timerTask = new TimerTask() {
+            public void run() {
+                //use a handler to run a toast that shows the current timestamp
+                handler.post(new Runnable() {
+                    public void run() {
+                        //show the toast
+                        Toast toast = Toast.makeText(getApplicationContext(), "20 Segundos se passassaram", Toast.LENGTH_SHORT);
+                        toast.show();
+                    }
+                });
+            }
+        };
+    }
 
 
     @Override
@@ -44,6 +83,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         openDB();
         setContentView(R.layout.activity_main);
+
+
         tupla = new Tuple();
         MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -225,5 +266,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void closeDB() {
         myDb.close();
+    }
+    class myTimerTask extends TimerTask{
+        @Override
+        public void run() {
+            Toast.makeText(MainActivity.this, "A cada 20 Segundos", Toast.LENGTH_SHORT);
+        }
     }
 }
